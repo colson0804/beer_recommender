@@ -21,8 +21,6 @@ lam = 10^-2;
 alpha = 1/(L + 2*lam);        % step length
 z = grad_descent_soft_SVM(D,b,x0,alpha,lam);
 
-%%% plot everything, pts and lines %%%
-% plot_all(D',b,x,y,z);
 
 %%% gradient descent function for perceptron %%%
 function x = grad_descent_soft_SVM(D,b,x0,alpha,lam)
