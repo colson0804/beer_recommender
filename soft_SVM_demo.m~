@@ -91,7 +91,7 @@ function plot_all(A,b,x,y,z)
     hold on
 
     set(gcf,'color','w');
-    axis([ (min(A(:,2)) - 1) (max(A(:,2)) + 1) (min(A(:,3)) - 1) (max(A(:,3)) + 1) (min(A(:,4)) - 1) (max(A(:, 4)) - 1)])
+    axis([ (min(A(:,2)) - 1) (max(A(:,2)) + 1) (min(A(:,3)) - 1) (max(A(:,3)) + 1) (min(A(:,4)) - 1) (max(A(:, 4)) - 1))])
     box off
     
     % graph info labels
