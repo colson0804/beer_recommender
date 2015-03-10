@@ -81,13 +81,13 @@ function plot_all(A,b,x,y,z)
 
     % plot separators
     s =[min(A(:,2)):.01:max(A(:,2))];
-    plot (s,(-x(1)-x(2)*s)/x(3),'k','linewidth', 2);
+    plot (s,(-x(1)-x(2)-x(3)*s)/x(4),'k','linewidth', 2);
     hold on
 
-    plot (s,(-y(1)-y(2)*s)/y(3),'g','linewidth', 2);
+    plot (s,(-y(1)-y(2)-y(3)*s)/y(4),'g','linewidth', 2);
     hold on
 
-    plot (s,(-z(1)-z(2)*s)/z(3),'m','linewidth', 2);
+    plot (s,(-z(1)-z(2)-z(3)*s)/z(4),'m','linewidth', 2);
     hold on
 
     set(gcf,'color','w');

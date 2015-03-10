@@ -1,6 +1,23 @@
 function beer_recommender()
 
-[D, b] = load_data();
+M = importdata('beer_data.csv', ',', 1);
+%[D,b] = load_data();
+dat = M.data;
+removeRows=[];
+r=0;
+for i = 1:size(dat,1)
+    if dat(i, 6) == 0
+        r=r+1;
+        removeRows(r,1)=i;
+    end
+        
+end
+dat([removeRows],:)=[];
+
+
+D = [ones(size(dat, 1), 1), dat(:, 2), dat(:, 3), dat(:, 4)]';
+b = dat(:, end);
+
 %%% run perceptron for 3 initial points %%%
 
 % Calculate fixed steplength - via Lipschitz constant (see Chap 9 for 
@@ -22,7 +39,8 @@ alpha = 1/(L + 2*lam);        % step length
 z = grad_descent_soft_SVM(D,b,x0,alpha,lam);
 
 %%% plot everything, pts and lines %%%
-% plot_all(D',b,x,y,z);
+plot_all(D',b,x,y,z);
+
 
 %%% gradient descent function for perceptron %%%
 function x = grad_descent_soft_SVM(D,b,x0,alpha,lam)
@@ -79,22 +97,11 @@ end
 
 %%% loads data %%%
 function [A,b] = load_data()
-    data = importdata('beer_data.csv', ',', 1);
+    data = load('soft_SVM_data.mat');
     data = data.data;
-    removeRows=[];
-    r=0;
-
-    for i = 1:size(data,1)
-        if data(i, 6) == 0
-            r=r+1;
-            removeRows(r,1)=i;
-        end
-    end
-    data([removeRows],:)=[];
-
-
-    A = [ones(size(data, 1), 1), data(:, 2), data(:, 3), data(:, 4)]';
-    b = data(:, end);
+    A = data(:,1:3);
+    A = A';
+    b = data(:,4);
 end
 
 function grad = find_grad(D, b, x, alpha, lam)
