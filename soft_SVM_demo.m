@@ -8,7 +8,22 @@ function soft_SVM_demo_hw()
 %%% load data %%%
 
 M = importdata('beer_data.csv', ',', 1);
-[D,b] = load_data();
+%[D,b] = load_data();
+dat = M.data;
+removeRows=[];
+r=0;
+for i = 1:size(dat,1)
+    if dat(i, 6) == 0
+        r=r+1;
+        removeRows(r,1)=i;
+    end
+        
+end
+dat([removeRows],:)=[];
+
+
+D = [ones(size(dat, 1), 1), dat(:, 2), dat(:, 3), dat(:, 4)]';
+b = dat(:, end);
 
 %%% run perceptron for 3 initial points %%%
 
@@ -45,7 +60,7 @@ function x = grad_descent_soft_SVM(D,b,x0,alpha,lam)
     while  norm(grad) > 10^-6 && iter < max_its
         
         % form gradient and take step
-        grad = find_grad(D, b, x, alpha, lam);           % your code goes here!
+        grad = find_grad(D, b, x, alpha, lam); 
         x = x - alpha*grad;
 
         % update iteration count
@@ -98,10 +113,6 @@ end
 function grad = find_grad(D, b, x, alpha, lam)
     N = numel(b);
     k = numel(x);
-%     u1 = 0;
-%     u2 = zeros(1, k);
-%     u3 = zeros(k, 1);
-%     u4 = eye(k);
     in = ones(N, 1) - diag(b)*D'*x;
     in = max(0, in(:));
     % U = [u1, u2; u3, u4];
