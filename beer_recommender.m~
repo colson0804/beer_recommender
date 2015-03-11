@@ -1,25 +1,8 @@
 function beer_recommender()
 
-M = importdata('beer_data.csv', ',', 1);
-%[D,b] = load_data();
-dat = M.data;
-removeRows=[];
-r=0;
-for i = 1:size(dat,1)
-    if dat(i, 6) == 0
-        r=r+1;
-        removeRows(r,1)=i;
-    end
-        
-end
-dat([removeRows],:)=[];
-
-
-D = [ones(size(dat, 1), 1), dat(:, 2), dat(:, 3), dat(:, 4)]';
-b = dat(:, end);
-
+[D, b] = load_data();
 %%% run perceptron for 3 initial points %%%
-
+    
 % Calculate fixed steplength - via Lipschitz constant (see Chap 9 for 
 % explanation) - for use in all three runs
 lam = 10^2;        % regularization parameter 
@@ -37,9 +20,6 @@ y = grad_descent_soft_SVM(D,b,x0,alpha,lam);
 lam = 10^-2;
 alpha = 1/(L + 2*lam);        % step length
 z = grad_descent_soft_SVM(D,b,x0,alpha,lam);
-
-%%% plot everything, pts and lines %%%
-plot_all(D',b,x,y,z);
 
 
 %%% gradient descent function for perceptron %%%
@@ -97,12 +77,45 @@ end
 
 %%% loads data %%%
 function [A,b] = load_data()
-    data = load('soft_SVM_data.mat');
+    data = importdata('beer_data.csv', ',', 1);
     data = data.data;
-    A = data(:,1:3);
-    A = A';
-    b = data(:,4);
+    
+    
+    %%removeRows=[];
+    %%r=0;
+
+    %%for i = 1:size(data,1)
+    %%    if data(i, 6) == 0
+    %%        r=r+1;
+    %%        removeRows(r,1)=i;
+    %%    end
+    %%end
+    %%data([removeRows],:)=[];
+    
+
+    A = [ones(size(data, 1), 1), data(:, 2), data(:, 3), data(:, 4)]';
+    b = data(:, end);
+    
 end
+
+i = 1;
+dessert = [0, 0, 0, 0, 0;];
+while (i <= 5)
+    choice = questdlg('Do you like this beer?', ...
+	'Calculating your taste in beer...', ...
+	'Yes','No','Haven''t tried it','Haven''t tried it');
+    switch choice
+        case 'Yes'
+            dessert(i) = 1;
+        case 'No'
+            dessert(i) = -1;
+        case 'Haven''t tried it'
+            dessert(i) = 0;
+    end
+    i = i+1;
+    display(dessert);
+end
+
 
 function grad = find_grad(D, b, x, alpha, lam)
     N = numel(b);
