@@ -1,4 +1,4 @@
-function L2reg_cross_validation_classification()
+function lam = beer_recommender()
 % Here we illustrate 3-fold cross validation using soft-margin SVM and
 % polyonimal features
 clear all
@@ -14,7 +14,7 @@ lams = logspace(-3,0,20);
 c = split_data(A,b);
 
 % do 3-fold cross-validation
-cross_validate(A,b,c,poly_deg,lams);  
+lam = cross_validate(A,b,c,poly_deg,lams);  
 
 function c = split_data(a,b)
     % split data into 3 equal sized sets
@@ -26,7 +26,7 @@ function c = split_data(a,b)
     c(order(2*K+1:end)) = 3;
 end
         
-function cross_validate(A_orig,b,c,poly_deg,lams)  
+function lam = cross_validate(A_orig,b,c,poly_deg,lams)  
     %%% performs 3-fold cross validation
     % generate features     
     
@@ -69,12 +69,6 @@ function cross_validate(A_orig,b,c,poly_deg,lams)
         % run soft-margin SVM with chosen lambda
         lam = lams(j);
         x = fast_grad_descent_L2_soft_SVM(A_1',b_1,lam);
-        
-        
-        %%% find the worst performer (per split) and plot it %%%
-        [val,j] = max(test_errors(:,i));
-        A_1 = A(find(c ~= i),:);
-        b_1 = b(find(c ~= i)); 
 
         % run soft-margin SVM with chosen lambda
         lam = lams(j);
