@@ -2,7 +2,7 @@ function beer_recommender()
 
 [D, b] = load_data();
 %%% run perceptron for 3 initial points %%%
-
+    
 % Calculate fixed steplength - via Lipschitz constant (see Chap 9 for 
 % explanation) - for use in all three runs
 lam = 10^2;        % regularization parameter 
@@ -78,22 +78,51 @@ end
 %%% loads data %%%
 function [A,b] = load_data()
     data = importdata('beer_data.csv', ',', 1);
-    data = data.data;
-    removeRows=[];
-    r=0;
-
-    for i = 1:size(data,1)
-        if data(i, 6) == 0
-            r=r+1;
-            removeRows(r,1)=i;
-        end
+    beerNames = data.textdata;
+    data = data.data;    
+    
+    i = 1;
+    surveyed = [];
+while (i <= 5)
+    
+    randomBeer = randi([1, 54], 1, 1);
+    
+    %% Makes sure that you aren't repeating beers
+    while (any(surveyed == randomBeer) == 1)
+        randomBeer = randi([1, 54], 1, 1);
     end
-    data([removeRows],:)=[];
+    
+    choice = questdlg(strcat('Do you like...', beerNames(randomBeer+1),'?'), ...
+	'Calculating your taste in beer...', ...
+	'Yes','No','Haven''t tried it','Haven''t tried it');
+    switch choice
+        case 'Yes'
+            data(randomBeer, 6) = 1;
+        case 'No'
+            data(randomBeer, 6) = -1;
+        case 'Haven''t tried it'
+            data(randomBeer, 6) = 0;
+    end
+    i = i+1;
+    surveyed(end + 1) = randomBeer;
+end
 
+    %%removeRows=[];
+    %%r=0;
 
+    %%for i = 1:size(data,1)
+    %%    if data(i, 6) == 0
+    %%        r=r+1;
+    %%        removeRows(r,1)=i;
+    %%    end
+    %%end
+    %%data([removeRows],:)=[];
+    
     A = [ones(size(data, 1), 1), data(:, 2), data(:, 3), data(:, 4)]';
     b = data(:, end);
+    
 end
+
 
 function grad = find_grad(D, b, x, alpha, lam)
     N = numel(b);
