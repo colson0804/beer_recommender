@@ -1,4 +1,4 @@
-function lam = beer_recommender()
+function [lam,xmin] = beer_recommender_xval()
 % Here we illustrate 3-fold cross validation using soft-margin SVM and
 % polyonimal features
 clear all
@@ -14,7 +14,7 @@ lams = logspace(-3,0,20);
 c = split_data(A,b);
 
 % do 3-fold cross-validation
-lam = cross_validate(A,b,c,poly_deg,lams);  
+[lam,xmin] = cross_validate(A,b,c,poly_deg,lams);  
 
 function c = split_data(a,b)
     % split data into 3 equal sized sets
@@ -26,7 +26,7 @@ function c = split_data(a,b)
     c(order(2*K+1:end)) = 3;
 end
         
-function lam = cross_validate(A_orig,b,c,poly_deg,lams)  
+function [lam,xmin] = cross_validate(A_orig,b,c,poly_deg,lams)  
     %%% performs 3-fold cross validation
     % generate features     
     
