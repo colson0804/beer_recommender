@@ -24,6 +24,13 @@ function c = split_data(a,b)
     K = round((1/3)*K);
     c(order(K+1:2*K)) =2;
     c(order(2*K+1:end)) = 3;
+
+    % plot train/test sets for each cross-validation instance
+    for j = 1:3
+        subplot(2,3,j)
+        box on
+        plot_pts(a,b,c,j)
+    end
 end
         
 function cross_validate(A_orig,b,c,poly_deg,lams)  
@@ -86,6 +93,43 @@ function cross_validate(A_orig,b,c,poly_deg,lams)
     % plot best separator for all data
     lam = lams(j);
     xmin = fast_grad_descent_L2_soft_SVM(A',b,lam);
+    
+    hold on
+    subplot(2,3,5)
+    plot_poly(xmin,poly_deg,'k')
+    xlabel('a_1','Fontsize',14,'FontName','cmr10')
+    ylabel('a_2','Fontsize',14,'FontName','cmr10')
+    box on
+    set(gcf,'color','w');
+
+    % plot training and testing errors
+    figure(2)
+    s = mean(test_errors');
+    semilogx(lams,s,'--','MarkerEdgeColor',[1 0.7 0],'MarkerFaceColor',[1 0.7 0])
+    hold on
+    semilogx(lams,s,'o','MarkerEdgeColor',[1 0.7 0],'MarkerFaceColor',[1 0.7 0])
+    hold on
+    
+    s = mean(train_errors');
+    semilogx(lams,s,'--','MarkerEdgeColor',[0.1 0.8 1],'MarkerFaceColor',[0.1 0.8 1])
+    hold on
+    semilogx(lams,s,'o','MarkerEdgeColor',[0.1 0.8 1],'MarkerFaceColor',[0.1 0.8 1])
+    set(gcf,'color','w');
+    box on
+    xlabel('lambda','Fontsize',14,'FontName','cmr10')
+    ylabel('error','Fontsize',14,'FontName','cmr10')
+    set(get(gca,'YLabel'),'Rotation',90)
+%     set(gca,'YTickLabel',[])
+%     set(gca,'YTick',[])
+    set(gcf,'color','w');
+    set(gca,'FontSize',12); 
+    box off
+    
+    figure(3)
+    bar(0:length(xmin)-1,xmin);
+    xlabel('x-index','Fontsize',14,'FontName','cmr10')
+    set(gcf,'color','w');
+    box off
 end
    
 
@@ -104,7 +148,7 @@ function [A,b] = load_data()
     data([removeRows],:)=[];
 
 
-    A = [data(:, 2), data(:, 3), data(:, 4)];   %% add data(:, 4)
+    A = [data(:, 2), data(:, 3)];   %% add data(:, 4)
     b = data(:, end);
 end
 
