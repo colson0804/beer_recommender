@@ -52,7 +52,7 @@ function cross_validate(A_orig,b,c,poly_deg,lams)
         test_resids = [];
         train_resids = [];
 
-        for j = 1:3
+        for j = 1:3     % folds
             A_1 = A(find(c ~= j),:);
             b_1 = b(find(c ~= j));
             A_2 = A(find(c==j),:);
