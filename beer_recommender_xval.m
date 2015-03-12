@@ -2,19 +2,19 @@ function [lam,xmin] = beer_recommender_xval()
 % Here we illustrate 3-fold cross validation using soft-margin SVM and
 % polyonimal features
 clear all
+debug = 0;
 
 % poly degs to look over
-poly_deg = 1;
 lams = logspace(-3,0,20);
 
 % load data etc.,
-[A,b] = load_data();
+[A,b] = load_data(debug);
 
 % split points into 3 equal sized sets and plot
 c = split_data(A,b);
 
 % do 3-fold cross-validation
-[lam,xmin] = cross_validate(A,b,c,poly_deg,lams);  
+[lam,xmin] = cross_validate(A,b,c,lams);  
 
 function c = split_data(a,b)
     % split data into 3 equal sized sets
@@ -26,7 +26,7 @@ function c = split_data(a,b)
     c(order(2*K+1:end)) = 3;
 end
         
-function [lam,xmin] = cross_validate(A_orig,b,c,poly_deg,lams)  
+function [lam,xmin] = cross_validate(A_orig,b,c,lams)  
     %%% performs 3-fold cross validation
     % generate features     
     
@@ -79,19 +79,46 @@ function [lam,xmin] = cross_validate(A_orig,b,c,poly_deg,lams)
 end
    
 
-function [A,b] = load_data()
+function [A,b] = load_data(debug)
     data = importdata('beer_data.csv', ',', 1);
+    beerNames = data.textdata;
     data = data.data;
     removeRows=[];
     r=0;
-
-    for i = 1:size(data,1)
-        if data(i, 6) == 0
-            r=r+1;
-            removeRows(r,1)=i;
+    if (debug == 1)
+        for i = 1:size(data,1)
+            if data(i, 6) == 0
+              r=r+1;
+              removeRows(r,1)=i;
+            end
         end
+        data([removeRows],:)=[];
+    else
+        data(:, 6) = zeros(size(data, 1), 1);
+        i = 1;
+        surveyed = [];
+        while (i <= 5)
+            randomBeer = randi([1, 54], 1, 1);
+            % Makes sure that you aren't repeating beers
+            while (any(surveyed == randomBeer) == 1)
+                randomBeer = randi([1, 54], 1, 1);
+            end
+        
+            choice = questdlg(strcat('Do you like...', beerNames(randomBeer+1),'?'), ...
+                'Calculating your taste in beer...', ...
+                'Yes','No','Haven''t tried it','Haven''t tried it');
+            switch choice
+                case 'Yes'
+                    data(randomBeer, 6) = 1;
+                case 'No'
+                    data(randomBeer, 6) = -1;
+                case 'Haven''t tried it'
+                    data(randomBeer, 6) = 0;
+            end
+            i = i+1;
+            surveyed(end + 1) = randomBeer;
+        end   
     end
-    data([removeRows],:)=[];
 
 
     A = [data(:, 2), data(:, 3), data(:, 4)];   %% add data(:, 4)
