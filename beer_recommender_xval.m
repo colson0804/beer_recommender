@@ -69,17 +69,13 @@ function [lam,xmin] = cross_validate(A_orig,b,c,poly_deg,lams)
         % run soft-margin SVM with chosen lambda
         lam = lams(j);
         x = fast_grad_descent_L2_soft_SVM(A_1',b_1,lam);
-
-        % run soft-margin SVM with chosen lambda
-        lam = lams(j);
-        x = fast_grad_descent_L2_soft_SVM(A_1',b_1,lam);
     end
     test_ave = mean(test_errors');
     [val,j] = min(test_ave);
     
-    % plot best separator for all data
-    lam = lams(j);
-    xmin = fast_grad_descent_L2_soft_SVM(A',b,lam);
+%     % plot best separator for all data
+     lam = lams(j);
+     xmin = fast_grad_descent_L2_soft_SVM(A',b,lam);
 end
    
 
