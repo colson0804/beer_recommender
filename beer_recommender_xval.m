@@ -3,18 +3,25 @@ function [lam,xmin] = beer_recommender_xval()
 % polyonimal features
 clear all
 debug = 0;
+survey = 5;     % Number of beers the user gets asked about
 
 % poly degs to look over
 lams = logspace(-3,0,20);
 
 % load data etc.,
-[A,b] = load_data(debug);
+% A_rem is data that the user hasn't provided
+%   i.e. the pool of beers that we will try to suggest
+[A, b, A_rem, b_rem] = load_data(debug, survey);
 
 % split points into 3 equal sized sets and plot
 c = split_data(A,b);
 
-% do 3-fold cross-validation
-[lam,xmin] = cross_validate(A,b,c,lams);  
+% do 3-fold cross-validation on data collected from user
+[lam,xmin] = cross_validate(A,b,c,lams);
+
+% From lam and xmin, we can now find a beer to suggest
+
+% Function here
 
 function c = split_data(a,b)
     % split data into 3 equal sized sets
@@ -79,25 +86,21 @@ function [lam,xmin] = cross_validate(A_orig,b,c,lams)
 end
    
 
-function [A,b] = load_data(debug)
+function [A,b, A_rem, b_rem] = load_data(debug, survey)
+    % A, b: Data we are performing cross-validation on
+    % A_rem, b_rem: Data that is remaining (i.e. user hasn't tried or been
+    %   asked about
     data = importdata('beer_data.csv', ',', 1);
     beerNames = data.textdata;
     data = data.data;
     removeRows=[];
     r=0;
-    if (debug == 1)
-        for i = 1:size(data,1)
-            if data(i, 6) == 0
-              r=r+1;
-              removeRows(r,1)=i;
-            end
-        end
-        data([removeRows],:)=[];
-    else
+ 
+    if debug == 0
         data(:, 6) = zeros(size(data, 1), 1);
         i = 1;
         surveyed = [];
-        while (i <= 5)
+        while (i <= survey)
             randomBeer = randi([1, 54], 1, 1);
             % Makes sure that you aren't repeating beers
             while (any(surveyed == randomBeer) == 1)
@@ -117,12 +120,23 @@ function [A,b] = load_data(debug)
             end
             i = i+1;
             surveyed(end + 1) = randomBeer;
+            
         end   
     end
+    
+    for i = 1:size(data,1)
+        if data(i, 6) == 0
+          r=r+1;
+          removeRows(r,1)=i;
+        end
+    end
+    data_rem = data([removeRows], :);
+    data([removeRows],:)=[];
 
-
-    A = [data(:, 2), data(:, 3), data(:, 4)];   %% add data(:, 4)
+    A = [data(:, 2), data(:, 3), data(:, 4), data(:, 5)];
+    A_rem = [data_rem(:,2), data_rem(:,3), data_rem(:,4), data_rem(:,5)];
     b = data(:, end);
+    b_rem = data_rem(:, end);
 end
 
 function x = fast_grad_descent_L2_soft_SVM(D,b,lam)
