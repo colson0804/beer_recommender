@@ -3,7 +3,7 @@ function [lam,xmin] = beer_recommender_xval()
 % polyonimal features
 clear all
 debug = 0;
-survey = 5;     % Number of beers the user gets asked about
+survey = 20;     % Number of beers the user gets asked about
 
 % poly degs to look over
 lams = logspace(-3,0,20);
@@ -22,7 +22,9 @@ c = split_data(A,b);
 % From lam and xmin, we can now find a beer to suggest
 [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_rem, b_rem);
 
+%Displays the recommended beer in a message box
 h = msgbox({'We recommend that you try a(n)' beerNames{A_index+1, 1}});
+
 function c = split_data(a,b)
     % split data into 3 equal sized sets
     K = length(b);
@@ -107,7 +109,8 @@ function [A,b, A_rem, b_rem, beerNames] = load_data(debug, survey)
             while (any(surveyed == randomBeer) == 1)
                 randomBeer = randi([1, 54], 1, 1);
             end
-        
+            
+            %% GUI that logs the user's beer preferences
             choice = questdlg(strcat('Do you like...', beerNames(randomBeer+1),'?'), ...
                 'Calculating your taste in beer...', ...
                 'Yes','No','Haven''t tried it','Haven''t tried it');
@@ -125,6 +128,7 @@ function [A,b, A_rem, b_rem, beerNames] = load_data(debug, survey)
         end   
     end
     
+    %Removes rows that have zeros for the surveyed
     for i = 1:size(data,1)
         if data(i, 6) == 0
           r=r+1;
@@ -190,7 +194,7 @@ function [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_r
     % Rows with all ones
     A_one = A(A(:,6) == 1, :);
     
-    %Finds beer that is voted yes that is furthest away
+    %Finds beer that is voted yes that is furthest away from line
     max_distance = 0;
     for n=1:size(A_one, 1)
         g = calc_distance(0, A_one(n, 2), A_one(n, 3), A_one(n, 4), ...
@@ -200,8 +204,6 @@ function [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_r
             max_distance = g;
         end
     end
-            
-    averages = mean(A_one);
     
     for i = 1:numel(b_rem)
        if b_rem(i) > 0
@@ -211,13 +213,23 @@ function [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_r
         end
     end
     
-    scores = zeros(numel(b_rem), 1);
+    %the second part of the weight for scores is finding distance from
+    %average feature values
+    averages = mean(A_one);
+    scores = zeros(numel(b_rem), 1); %% array of scores for unsurveyed beers
     z1 = 0;
     z2 = averages(2);
     z3 = averages(3);
     z4 = averages(4);
     z5 = averages(5);
     
+    %%algorithm for finding scores for unsurveyed beers -> equally weights
+    %%distance from the classifying function (assuming furthest away is
+    %%better) and distance from average feature values (since we want it to
+    %%be similar to beers you like). In order to weight it equally, for the
+    %%second weight we did the furthest distance from the function -
+    %%distance from average so that way the closer to the average a point
+    %%is, the higher the score
     for j = 1:numel(b_rem)
         y1 = xmin(1);
         y2 = xmin(2)*A_rem(j, 2);
@@ -230,11 +242,15 @@ function [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_r
              z4, z5, 0, A_rem(j, 2), A_rem(j, 3), A_rem(j, 4), A_rem(j, 5));
     end
     
+    %%Returns index of the max score for finding the name of the beer to
+    %%recommend in beerNames
     [max_value, index] = max(scores(:));
     A_index = A_rem(index, 1);
         
 end 
 
+%%simple function to calculate distance between two points with five
+%%x-values
 function distance = calc_distance(x1, x2, x3, x4, x5, y1, y2, y3, y4, y5)
     distance = sqrt((y1-x1)^2 + (y2-x2)^2 + (y3-x3)^2 + (y4-x4)^2 + (y5-x5)^2);
 end
