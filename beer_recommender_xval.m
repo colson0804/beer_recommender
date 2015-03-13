@@ -1,11 +1,13 @@
-function [lam,xmin] = beer_recommender_xval()
+function beer_recommender_xval()
 % Here we illustrate 3-fold cross validation using soft-margin SVM and
 % polyonimal features
 clear all
 debug = 0;
-survey = 20;     % Number of beers the user gets asked about
 
-% poly degs to look over
+% Number of beers the user gets asked about
+survey = 20;
+
+% lambda values to look over
 lams = logspace(-3,0,20);
 
 % load data etc.,
@@ -13,7 +15,7 @@ lams = logspace(-3,0,20);
 %   i.e. the pool of beers that we will try to suggest
 [A, b, A_rem, b_rem, beerNames] = load_data(debug, survey);
 
-% split points into 3 equal sized sets and plot
+% split points into 3 equal sized sets
 c = split_data(A,b);
 
 % do 3-fold cross-validation on data collected from user
@@ -37,7 +39,9 @@ end
         
 function [lam,xmin] = cross_validate(A_orig,b,c,lams)  
     %%% performs 3-fold cross validation
-    % generate features     
+    % generate features 
+    
+    % remove index column
     A_orig(:,1) = [];
     A_new = [ones(size(A,1),1), A_orig];
     
@@ -49,8 +53,9 @@ function [lam,xmin] = cross_validate(A_orig,b,c,lams)
         lam = lams(i);
         test_resids = [];
         train_resids = [];
-
-        for j = 1:3     % folds
+        
+        % folds
+        for j = 1:3
             A_1 = A_new(find(c ~= j),:);
             b_1 = b(find(c ~= j));
             A_2 = A_new(find(c==j),:);
@@ -69,21 +74,10 @@ function [lam,xmin] = cross_validate(A_orig,b,c,lams)
 
     end
 
-    % find best parameter per data-split
-%     for i = 1:3
-%         [val,j] = min(test_errors(:,i));
-%         A_1 = A(find(c ~= i),:);    % testing data
-%         b_1 = b(find(c ~= i));
-%         
-%         % run soft-margin SVM with chosen lambda
-%         % Get minimum lambda value for given fold
-%         lam = lams(j);
-%         x = fast_grad_descent_L2_soft_SVM(A_1',b_1,lam);
-%     end
     test_ave = mean(test_errors');
     [val,j] = min(test_ave);
     
-%   % calculate best separator for all data
+    % calculate best separator for all data
      lam = lams(j);
      xmin = fast_grad_descent_L2_soft_SVM(A_new',b,lam);
 end
@@ -98,7 +92,9 @@ function [A,b, A_rem, b_rem, beerNames] = load_data(debug, survey)
     data = data.data;
     removeRows=[];
     r=0;
- 
+    
+    % Ask user for their beer preferences
+    % if debug is 1, just used default values
     if debug == 0
         data(:, 6) = zeros(size(data, 1), 1);
         i = 1;
@@ -110,7 +106,7 @@ function [A,b, A_rem, b_rem, beerNames] = load_data(debug, survey)
                 randomBeer = randi([1, 54], 1, 1);
             end
             
-            %% GUI that logs the user's beer preferences
+            % GUI that logs the user's beer preferences
             choice = questdlg(strcat('Do you like...', beerNames(randomBeer+1),'?'), ...
                 'Calculating your taste in beer...', ...
                 'Yes','No','Haven''t tried it','Haven''t tried it');
@@ -148,7 +144,7 @@ end
 
 function x = fast_grad_descent_L2_soft_SVM(D,b,lam)
     % Initializations 
-    x = randn(size(D,1),1);        % initial point
+    x = randn(size(D,1),1);   % initial point
     H = diag(b)*D';
     L = 2*norm(H)^2;           % Lipschitz constant of perceptron
     alpha = 1/(L + 2*lam);       % step length 
@@ -188,13 +184,13 @@ end
 
 function [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_rem, b_rem)
 
-    %function = xmin(0) + xmin(1)*A_rem(:, 1) * xmin(2)*A_rem(:, 2) + ...
+    % function = xmin(0) + xmin(1)*A_rem(:, 1) * xmin(2)*A_rem(:, 2) + ...
     b_rem = xmin(1) + xmin(2)*A_rem(:, 1) + xmin(3)*A_rem(:, 2) + xmin(4)*A_rem(:,3) + xmin(5)*A_rem(:,4);
     A = [A b];
     % Rows with all ones
     A_one = A(A(:,6) == 1, :);
     
-    %Finds beer that is voted yes that is furthest away from line
+    % Finds beer that is voted yes that is furthest away from line
     max_distance = 0;
     for n=1:size(A_one, 1)
         g = calc_distance(0, A_one(n, 2), A_one(n, 3), A_one(n, 4), ...
@@ -223,13 +219,13 @@ function [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_r
     z4 = averages(4);
     z5 = averages(5);
     
-    %%algorithm for finding scores for unsurveyed beers -> equally weights
-    %%distance from the classifying function (assuming furthest away is
-    %%better) and distance from average feature values (since we want it to
-    %%be similar to beers you like). In order to weight it equally, for the
-    %%second weight we did the furthest distance from the function -
-    %%distance from average so that way the closer to the average a point
-    %%is, the higher the score
+    %algorithm for finding scores for unsurveyed beers -> equally weights
+    %distance from the classifying function (assuming furthest away is
+    %better) and distance from average feature values (since we want it to
+    %be similar to beers you like). In order to weight it equally, for the
+    %second weight we did the furthest distance from the function -
+    %distance from average so that way the closer to the average a point
+    %is, the higher the score
     for j = 1:numel(b_rem)
         y1 = xmin(1);
         y2 = xmin(2)*A_rem(j, 2);
@@ -242,15 +238,15 @@ function [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_r
              z4, z5, 0, A_rem(j, 2), A_rem(j, 3), A_rem(j, 4), A_rem(j, 5));
     end
     
-    %%Returns index of the max score for finding the name of the beer to
-    %%recommend in beerNames
+    %Returns index of the max score for finding the name of the beer to
+    %recommend in beerNames
     [max_value, index] = max(scores(:));
     A_index = A_rem(index, 1);
         
 end 
 
-%%simple function to calculate distance between two points with five
-%%x-values
+%simple function to calculate distance between two points with five
+%x-values
 function distance = calc_distance(x1, x2, x3, x4, x5, y1, y2, y3, y4, y5)
     distance = sqrt((y1-x1)^2 + (y2-x2)^2 + (y3-x3)^2 + (y4-x4)^2 + (y5-x5)^2);
 end

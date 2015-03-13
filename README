@@ -2,4 +2,6 @@ EECS 395 Beer Recommender
 
 Uses machine learning concepts such as support vecotr machines (SVM's) and cross validation to recommend beer to users based on their preferences.
 
+Run beer_recommender_xval.m
+
 By Jason Lustbader, Sachin Lal, and Craig Olson
