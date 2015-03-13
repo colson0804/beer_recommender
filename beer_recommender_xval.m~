@@ -2,7 +2,7 @@ function [lam,xmin] = beer_recommender_xval()
 % Here we illustrate 3-fold cross validation using soft-margin SVM and
 % polyonimal features
 clear all
-debug = 0;
+debug = 1;
 survey = 5;     % Number of beers the user gets asked about
 
 % poly degs to look over
@@ -19,7 +19,8 @@ c = split_data(A,b);
 % do 3-fold cross-validation on data collected from user
 [lam,xmin] = cross_validate(A,b,c,lams);
 
-% From lam and xmin, we can now find a new beer
+% From lam and xmin, we can now find a beer to suggest
+[beer] = find_preference_remaining_beers(lam, xmin, A_rem, b_rem);
 
 function c = split_data(a,b)
     % split data into 3 equal sized sets
@@ -34,7 +35,7 @@ end
 function [lam,xmin] = cross_validate(A_orig,b,c,lams)  
     %%% performs 3-fold cross validation
     % generate features     
-    
+    A_orig(:,1) = [];
     A = [ones(size(A,1),1), A_orig];
     
     % solve for weights and collect test errors
@@ -66,19 +67,20 @@ function [lam,xmin] = cross_validate(A_orig,b,c,lams)
     end
 
     % find best parameter per data-split
-    for i = 1:3
-        [val,j] = min(test_errors(:,i));
-        A_1 = A(find(c ~= i),:);
-        b_1 = b(find(c ~= i));
-        
-        % run soft-margin SVM with chosen lambda
-        lam = lams(j);
-        x = fast_grad_descent_L2_soft_SVM(A_1',b_1,lam);
-    end
+%     for i = 1:3
+%         [val,j] = min(test_errors(:,i));
+%         A_1 = A(find(c ~= i),:);    % testing data
+%         b_1 = b(find(c ~= i));
+%         
+%         % run soft-margin SVM with chosen lambda
+%         % Get minimum lambda value for given fold
+%         lam = lams(j);
+%         x = fast_grad_descent_L2_soft_SVM(A_1',b_1,lam);
+%     end
     test_ave = mean(test_errors');
     [val,j] = min(test_ave);
     
-%     % plot best separator for all data
+%   % calculate best separator for all data
      lam = lams(j);
      xmin = fast_grad_descent_L2_soft_SVM(A',b,lam);
 end
@@ -131,8 +133,9 @@ function [A,b, A_rem, b_rem] = load_data(debug, survey)
     data_rem = data([removeRows], :);
     data([removeRows],:)=[];
 
-    A = [data(:, 2), data(:, 3), data(:, 4), data(:, 5)];
-    A_rem = [data_rem(:,2), data_rem(:,3), data_rem(:,4), data_rem(:,5)];
+    A = data;
+    A_rem = data_rem;
+    A(:,6) = []
     b = data(:, end);
     b_rem = data_rem(:, end);
 end
@@ -176,6 +179,19 @@ function score = evaluate(A,b,x)
     score = 1 - sum(t)/numel(t);
 
 end
+
+function b_rem = find_preference_remaining_beers(lam, xmin, A_rem, b_rem)
+    % Function = xmin(0) + xmin(1)*A_rem(:, 1) * xmin(2)*A_rem(:, 2) + ...
+    b_rem = xmin(1) + xmin(2)*A_rem(:, 1) + xmin(3)*A_rem(:, 2) + xmin(4)*A_rem(:,3) + xmin(5)*A_rem(:,4);
+    for i = 1:numel(b_rem)
+        if b_rem(i) > 0
+            b_rem(i) = 1;
+        else
+            b_rem(i) = -1;
+        end
+    end
+end 
+
 end
 
 
