@@ -20,9 +20,9 @@ c = split_data(A,b);
 [lam,xmin] = cross_validate(A,b,c,lams);
 
 % From lam and xmin, we can now find a beer to suggest
-b_rem = find_preference_remaining_beers(lam, xmin, A, b, A_rem, b_rem);
+[b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_rem, b_rem);
 
-h = msgbox({'We recommend that you try a' });
+h = msgbox({'We recommend that you try a(n)' beerNames{A_index+1, 1}});
 function c = split_data(a,b)
     % split data into 3 equal sized sets
     K = length(b);

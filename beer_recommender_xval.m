@@ -2,8 +2,8 @@ function [lam,xmin] = beer_recommender_xval()
 % Here we illustrate 3-fold cross validation using soft-margin SVM and
 % polyonimal features
 clear all
-debug = 1;
-survey = 10;     % Number of beers the user gets asked about
+debug = 0;
+survey = 5;     % Number of beers the user gets asked about
 
 % poly degs to look over
 lams = logspace(-3,0,20);
@@ -231,7 +231,7 @@ function [b_rem, A_index] = find_preference_remaining_beers(lam, xmin, A, b, A_r
     end
     
     [max_value, index] = max(scores(:));
-    A_index = A(index, 1);
+    A_index = A_rem(index, 1);
         
 end 
 

@@ -4,7 +4,7 @@ function L2reg_cross_validation_classification()
 clear all
 
 % poly degs to look over
-poly_deg = 5;
+poly_deg = 3;
 lams = logspace(-3,0,20);
 
 M = importdata('beer_data.csv', ',', 1);
